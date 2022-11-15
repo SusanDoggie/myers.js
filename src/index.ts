@@ -53,7 +53,11 @@ type Config<T> = {
   debounce?: number;
 };
 
-const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[keyof T]>) => {
+const descent = async <T extends any[] | string>(
+  a: T, b: T,
+  config: Config<T[keyof T]>,
+  nextick: (callback?: VoidFunction) => Promise<void>,
+) => {
 
   const n = a.length;
   const m = b.length;
@@ -65,23 +69,9 @@ const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[ke
   let x = 0;
   let y = 0;
 
-  const progress = config.progress ?? (() => {});
+  const progress = config.progress ?? (() => { });
   const compare = config.compare ?? _.isEqual;
-  const debounce = config.debounce ?? 0;
-  let lastInvokeTime = 0;
-
-  const update_progress = async () => {
-
-    const now = Date.now();
-
-    if (now - lastInvokeTime >= debounce) {
-
-      progress({ count: Math.min(x, n) + Math.min(y, m), total: max });
-      await new Promise<void>(r => nextick(r));
-
-      lastInvokeTime = now;
-    }
-  }
+  const update_progress = async () => nextick(() => progress({ count: Math.min(x, n) + Math.min(y, m), total: max }));
 
   for (let d = 0; d <= max; d++) {
     const prev_v = v;
@@ -128,7 +118,11 @@ const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[ke
   return result;
 }
 
-const formChanges = <T extends any[] | string>(a: T, b: T, trace: _V[]) => {
+const formChanges = async <T extends any[] | string>(
+  a: T, b: T,
+  trace: _V[],
+  nextick: (callback?: VoidFunction) => Promise<void>,
+) => {
 
   type Change = {
     type: 'insert' | 'remove';
@@ -161,6 +155,8 @@ const formChanges = <T extends any[] | string>(a: T, b: T, trace: _V[]) => {
 
     x = prev_x;
     y = prev_y;
+
+    await nextick();
   }
 
   return changes.reverse();
@@ -185,11 +181,24 @@ export const myers = async <T extends any[] | string>(a: T, b: T, config: Config
     v[path] = concat(v[path] as T, b);
   };
 
-  for (const change of formChanges(a, b, await descent(a, b, config))) {
+  const debounce = config.debounce ?? 0;
+  let lastInvokeTime = 0;
+
+  const _nextick = async (callback?: VoidFunction) => {
+    const now = Date.now();
+    if (now - lastInvokeTime >= debounce) {
+      callback?.();
+      await new Promise<void>(r => nextick(r));
+      lastInvokeTime = now;
+    }
+  }
+
+  for (const change of await formChanges(a, b, await descent(a, b, config, _nextick), _nextick)) {
 
     if (offset[change.type] < change.offset && (!_.isNil(v.remove) || !_.isNil(v.insert))) {
       result.push(v);
       v = {};
+      await _nextick();
     }
 
     while (offset[change.type] < change.offset) {
@@ -201,6 +210,7 @@ export const myers = async <T extends any[] | string>(a: T, b: T, config: Config
     if (!_.isNil(v.equivalent)) {
       result.push(v);
       v = {};
+      await _nextick();
     }
 
     update(v, change.type, change.type == 'remove' ? a[offset.remove] : b[offset.insert]);
