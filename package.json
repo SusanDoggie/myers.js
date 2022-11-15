@@ -12,7 +12,8 @@
     "rollup": "yarn clean && rollup -c"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "nextick": "^0.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",

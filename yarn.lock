@@ -1336,6 +1336,11 @@ ms@2.1.2:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
+nextick@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/nextick/-/nextick-0.0.1.tgz#7e8968e2183bd92ed7157269cad16ff8cd9a7dfc"
+  integrity sha512-ozJDZb4IWxqcqhqc9SYhpJtLtzk1qDqsLNZYgKHuaoNgeIxJXxlWtGoaJOhVRPzr/s+RAF9KYLGWr9A//Hn3Cg==
+
 node-releases@^2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.6.tgz#8a7088c63a55e493845683ebf3c828d8c51c5503"

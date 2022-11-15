@@ -24,6 +24,7 @@
 //
 
 import _ from 'lodash';
+import nextick from 'nextick';
 
 class _V {
 
@@ -49,7 +50,6 @@ class _V {
 type Config<T> = {
   compare?: (a: T, b: T) => boolean,
   progress?: (ratio: { count: number; total: number; }) => void;
-  nextTick?: () => Promise<void>;
   debounce?: number;
 };
 
@@ -65,10 +65,23 @@ const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[ke
   let x = 0;
   let y = 0;
 
-  const { progress, nextTick } = config;
+  const progress = config.progress ?? (() => {});
   const compare = config.compare ?? _.isEqual;
   const debounce = config.debounce ?? 0;
   let lastInvokeTime = 0;
+
+  const update_progress = async () => {
+
+    const now = Date.now();
+
+    if (now - lastInvokeTime >= debounce) {
+
+      progress({ count: Math.min(x, n) + Math.min(y, m), total: max });
+      await new Promise<void>(r => nextick(r));
+
+      lastInvokeTime = now;
+    }
+  }
 
   for (let d = 0; d <= max; d++) {
     const prev_v = v;
@@ -104,21 +117,12 @@ const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[ke
 
       v.set(k, x);
 
-      if (x >= n && y >= m) {
-        return result;
-      }
-    }
-    if (x >= n && y >= m) {
-      return result;
+      if (x >= n && y >= m) return result;
+      update_progress();
     }
 
-    progress?.({ count: Math.min(x, n) + Math.min(y, m), total: max });
-
-    const now = Date.now();
-    if (now - lastInvokeTime >= debounce) {
-      await nextTick?.();
-      lastInvokeTime = now;
-    }
+    if (x >= n && y >= m) return result;
+    update_progress();
   }
 
   return result;
