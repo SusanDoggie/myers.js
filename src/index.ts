@@ -46,12 +46,14 @@ class _V {
   }
 }
 
-const descent = async <T extends any[] | string>(
-  a: T,
-  b: T,
-  compare: (a: T[keyof T], b: T[keyof T]) => boolean,
-  progress?: (ratio: { count: number; total: number; }) => Promise<void>,
-) => {
+type Config<T> = {
+  compare?: (a: T, b: T) => boolean,
+  progress?: (ratio: { count: number; total: number; }) => void;
+  nextTick?: () => Promise<void>;
+  debounce?: number;
+};
+
+const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[keyof T]>) => {
 
   const n = a.length;
   const m = b.length;
@@ -63,7 +65,10 @@ const descent = async <T extends any[] | string>(
   let x = 0;
   let y = 0;
 
-  const _progress = async (count: number) => { await progress?.({ count, total: max }); };
+  const { progress, nextTick } = config;
+  const compare = config.compare ?? _.isEqual;
+  const debounce = config.debounce ?? 0;
+  let lastInvokeTime = 0;
 
   for (let d = 0; d <= max; d++) {
     const prev_v = v;
@@ -102,14 +107,18 @@ const descent = async <T extends any[] | string>(
       if (x >= n && y >= m) {
         return result;
       }
-
-      await _progress(Math.min(x, n) + Math.min(y, m));
     }
     if (x >= n && y >= m) {
       return result;
     }
 
-    await _progress(Math.min(x, n) + Math.min(y, m));
+    progress?.({ count: Math.min(x, n) + Math.min(y, m), total: max });
+
+    const now = Date.now();
+    if (now - lastInvokeTime >= debounce) {
+      await nextTick?.();
+    }
+    lastInvokeTime = now;
   }
 
   return result;
@@ -153,12 +162,7 @@ const formChanges = <T extends any[] | string>(a: T, b: T, trace: _V[]) => {
   return changes.reverse();
 }
 
-export const myers = async <T extends any[] | string>(
-  a: T,
-  b: T,
-  compare: (a: T[keyof T], b: T[keyof T]) => boolean = _.isEqual,
-  progress?: (ratio: { count: number; total: number; }) => Promise<void>,
-) => {
+export const myers = async <T extends any[] | string>(a: T, b: T, config: Config<T[keyof T]> = {}) => {
 
   type Change = {
     remove?: T;
@@ -177,7 +181,7 @@ export const myers = async <T extends any[] | string>(
     v[path] = concat(v[path] as T, b);
   };
 
-  for (const change of formChanges(a, b, await descent(a, b, compare, progress))) {
+  for (const change of formChanges(a, b, await descent(a, b, config))) {
 
     if (offset[change.type] < change.offset && (!_.isNil(v.remove) || !_.isNil(v.insert))) {
       result.push(v);
