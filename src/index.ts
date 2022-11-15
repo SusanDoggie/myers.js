@@ -100,10 +100,7 @@ const descent = async <T extends any[] | string>(
       }
       y = x - k;
 
-      while (x < n && y < m) {
-        if (!compare(a[x], b[y])) {
-          break;
-        }
+      while (x < n && y < m && compare(a[x], b[y])) {
         x += 1;
         y += 1;
       }
