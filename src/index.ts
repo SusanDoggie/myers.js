@@ -108,11 +108,11 @@ const descent = async <T extends any[] | string>(
       v.set(k, x);
 
       if (x >= n && y >= m) return result;
-      update_progress();
+      await update_progress();
     }
 
     if (x >= n && y >= m) return result;
-    update_progress();
+    await update_progress();
   }
 
   return result;
