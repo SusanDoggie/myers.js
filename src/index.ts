@@ -46,7 +46,12 @@ class _V {
   }
 }
 
-const descent = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T], b: T[keyof T]) => boolean) => {
+const descent = async <T extends any[] | string>(
+  a: T,
+  b: T,
+  compare: (a: T[keyof T], b: T[keyof T]) => boolean,
+  progress?: (ratio: { count: number; total: number; }) => Promise<void>,
+) => {
 
   const n = a.length;
   const m = b.length;
@@ -57,6 +62,8 @@ const descent = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T], b: T
 
   let x = 0;
   let y = 0;
+
+  const _progress = async (count: number) => { await progress?.({ count, total: max }); };
 
   for (let d = 0; d <= max; d++) {
     const prev_v = v;
@@ -83,7 +90,7 @@ const descent = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T], b: T
       y = x - k;
 
       while (x < n && y < m) {
-        if (!cmp(a[x], b[y])) {
+        if (!compare(a[x], b[y])) {
           break;
         }
         x += 1;
@@ -95,10 +102,14 @@ const descent = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T], b: T
       if (x >= n && y >= m) {
         return result;
       }
+
+      await _progress(Math.min(x, n) + Math.min(y, m));
     }
     if (x >= n && y >= m) {
       return result;
     }
+
+    await _progress(Math.min(x, n) + Math.min(y, m));
   }
 
   return result;
@@ -142,7 +153,12 @@ const formChanges = <T extends any[] | string>(a: T, b: T, trace: _V[]) => {
   return changes.reverse();
 }
 
-export const myers = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T], b: T[keyof T]) => boolean = _.isEqual) => {
+export const myers = async <T extends any[] | string>(
+  a: T,
+  b: T,
+  compare: (a: T[keyof T], b: T[keyof T]) => boolean = _.isEqual,
+  progress?: (ratio: { count: number; total: number; }) => Promise<void>,
+) => {
 
   type Change = {
     insert?: T;
@@ -162,7 +178,7 @@ export const myers = <T extends any[] | string>(a: T, b: T, cmp: (a: T[keyof T],
     v[path] = concat(v[path] as T, b);
   };
 
-  for (const change of formChanges(a, b, descent(a, b, cmp))) {
+  for (const change of formChanges(a, b, await descent(a, b, compare, progress))) {
 
     while ((change.type == 'remove' ? old_offset : offset) < change.offset) {
       if (!_.isNil(v.remove) || !_.isNil(v.insert)) {
