@@ -194,22 +194,25 @@ export const myers = async <T extends any[] | string>(a: T, b: T, config: Config
 
   for (const change of await formChanges(a, b, await descent(a, b, config, _nextick), _nextick)) {
 
-    if (offset[change.type] < change.offset && (!_.isNil(v.remove) || !_.isNil(v.insert))) {
-      result.push(v);
-      v = {};
-      await _nextick();
-    }
+    if (offset[change.type] < change.offset) {
 
-    while (offset[change.type] < change.offset) {
-      update(v, 'equivalent', a[offset.remove]);
-      offset.remove += 1;
-      offset.insert += 1;
-    }
+      if (!_.isNil(v.remove) || !_.isNil(v.insert)) {
+        result.push(v);
+        v = {};
+        await _nextick();
+      }
 
-    if (!_.isNil(v.equivalent)) {
-      result.push(v);
-      v = {};
-      await _nextick();
+      do {
+        update(v, 'equivalent', a[offset.remove]);
+        offset.remove += 1;
+        offset.insert += 1;
+      } while (offset[change.type] < change.offset);
+
+      if (!_.isNil(v.equivalent)) {
+        result.push(v);
+        v = {};
+        await _nextick();
+      }
     }
 
     update(v, change.type, change.type == 'remove' ? a[offset.remove] : b[offset.insert]);
