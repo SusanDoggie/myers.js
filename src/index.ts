@@ -121,7 +121,7 @@ const formChanges = <T extends any[] | string>(a: T, b: T, trace: _V[]) => {
     type: 'insert' | 'remove';
     offset: number;
     element: T[keyof T];
-  }
+  };
 
   const changes: Change[] = [];
 
@@ -161,15 +161,14 @@ export const myers = async <T extends any[] | string>(
 ) => {
 
   type Change = {
-    insert?: T;
     remove?: T;
+    insert?: T;
     equivalent?: T;
-  }
+  };
 
   const empty = () => (_.isString(a) ? '' : []) as T;
   const result: Change[] = [];
-  let old_offset = 0;
-  let offset = 0;
+  const offset = { remove: 0, insert: 0 };
   let v: Change = {};
 
   const concat = (a: T, b: T[keyof T]) => (_.isString(a) ? a + b : [...a, b]) as T;
@@ -180,14 +179,15 @@ export const myers = async <T extends any[] | string>(
 
   for (const change of formChanges(a, b, await descent(a, b, compare, progress))) {
 
-    while ((change.type == 'remove' ? old_offset : offset) < change.offset) {
-      if (!_.isNil(v.remove) || !_.isNil(v.insert)) {
-        result.push(v);
-        v = {};
-      }
-      update(v, 'equivalent', a[old_offset]);
-      old_offset += 1;
-      offset += 1;
+    if (offset[change.type] < change.offset && (!_.isNil(v.remove) || !_.isNil(v.insert))) {
+      result.push(v);
+      v = {};
+    }
+
+    while (offset[change.type] < change.offset) {
+      update(v, 'equivalent', a[offset.remove]);
+      offset.remove += 1;
+      offset.insert += 1;
     }
 
     if (!_.isNil(v.equivalent)) {
@@ -195,13 +195,8 @@ export const myers = async <T extends any[] | string>(
       v = {};
     }
 
-    if (change.type == 'remove') {
-      update(v, 'remove', a[old_offset]);
-      old_offset += 1;
-    } else {
-      update(v, 'insert', b[offset]);
-      offset += 1;
-    }
+    update(v, change.type, change.type == 'remove' ? a[offset.remove] : b[offset.insert]);
+    offset[change.type] += 1;
   }
 
   if (!_.isNil(v.remove) || !_.isNil(v.insert) || !_.isNil(v.equivalent)) {
