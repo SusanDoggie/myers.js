@@ -1,8 +1,8 @@
 {
   "name": "myers.js",
   "version": "1.0.0",
-  "main": "dist/cjs/index",
-  "module": "dist/esm/index",
+  "main": "dist/index",
+  "module": "dist/index",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/SusanDoggie/myers.js.git",
   "author": "Susan Cheng <susan.doggie@gmail.com>",
