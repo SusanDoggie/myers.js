@@ -117,8 +117,8 @@ const descent = async <T extends any[] | string>(a: T, b: T, config: Config<T[ke
     const now = Date.now();
     if (now - lastInvokeTime >= debounce) {
       await nextTick?.();
+      lastInvokeTime = now;
     }
-    lastInvokeTime = now;
   }
 
   return result;
