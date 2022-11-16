@@ -68,11 +68,12 @@ const descent = async <T extends any[] | string>(
 
   let x = 0;
   let y = 0;
+  let pc = 0;
 
   const progress = config.progress ?? (() => { });
   const compare = config.compare ?? _.isEqual;
   const update_progress = async (d: number) => nextick(() => progress({
-    count: Math.max(d, Math.min(x, n) + Math.min(y, m)),
+    count: pc = Math.max(pc, d, Math.min(x, n) + Math.min(y, m)),
     total: max,
   }));
 
@@ -108,6 +109,7 @@ const descent = async <T extends any[] | string>(
       v.set(k, x);
 
       if (x >= n && y >= m) return result;
+      pc = Math.max(pc, d, Math.min(x, n) + Math.min(y, m));
     }
 
     if (x >= n && y >= m) return result;
