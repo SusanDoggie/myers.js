@@ -47,15 +47,18 @@ class _V {
   }
 }
 
-type Config<T> = {
+type Options<T> = {
   compare?: (a: T, b: T) => boolean,
   progress?: (ratio: { count: number; total: number; }) => void;
   debounce?: number;
 };
 
-const descent = async <T extends any[] | string>(
+type ElementOf<T> = T extends ArrayLike<infer P> ? P : never;
+type ChangeValue<T> = T extends string ? string : ElementOf<T>[];
+
+const descent = async <T extends ArrayLike<any>>(
   a: T, b: T,
-  config: Config<T[keyof T]>,
+  options: Options<ElementOf<T>>,
   nextick: (callback?: VoidFunction) => Promise<void>,
 ) => {
 
@@ -70,8 +73,8 @@ const descent = async <T extends any[] | string>(
   let y = 0;
   let pc = 0;
 
-  const progress = config.progress ?? (() => { });
-  const compare = config.compare ?? _.isEqual;
+  const progress = options.progress ?? (() => { });
+  const compare = options.compare ?? _.isEqual;
   const update_progress = async (d: number) => nextick(() => progress({
     count: pc = Math.max(pc, d, Math.min(x, n) + Math.min(y, m)),
     total: max,
@@ -119,7 +122,7 @@ const descent = async <T extends any[] | string>(
   return result;
 }
 
-const formChanges = async <T extends any[] | string>(
+const formChanges = async <T extends ArrayLike<any>>(
   a: T, b: T,
   trace: _V[],
   nextick: (callback?: VoidFunction) => Promise<void>,
@@ -128,7 +131,7 @@ const formChanges = async <T extends any[] | string>(
   type Change = {
     type: 'insert' | 'remove';
     offset: number;
-    element: T[keyof T];
+    element: ElementOf<T>;
   };
 
   const changes: Change[] = [];
@@ -163,26 +166,21 @@ const formChanges = async <T extends any[] | string>(
   return changes.reverse();
 }
 
-export const myers = async <T extends any[] | string>(a: T, b: T, config: Config<T[keyof T]> = {}) => {
+export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Options<ElementOf<T>> = {}) => {
 
   type Change = {
-    remove?: T;
-    insert?: T;
-    equivalent?: T;
+    remove?: ChangeValue<T>;
+    insert?: ChangeValue<T>;
+    equivalent?: ChangeValue<T>;
   };
 
-  const empty = () => (_.isString(a) ? '' : []) as T;
   const result: Change[] = [];
   const offset = { remove: 0, insert: 0 };
   let v: Change = {};
 
-  const concat = (a: T, b: T[keyof T]) => (_.isString(a) ? a + b : [...a, b]) as T;
-  const update = (v: Change, path: keyof Change, b: T[keyof T]) => {
-    if (_.isNil(v[path])) v[path] = empty();
-    v[path] = concat(v[path] as T, b);
-  };
+  const update = (v: Change, path: keyof Change, b: ElementOf<T>) => v[path] = (v[path]?.concat(b) ?? (_.isString(a) ? b : [b])) as ChangeValue<T>;
 
-  const debounce = config.debounce ?? 0;
+  const debounce = options.debounce ?? 0;
   let lastInvokeTime = 0;
 
   const _nextick = async (callback?: VoidFunction) => {
@@ -194,7 +192,7 @@ export const myers = async <T extends any[] | string>(a: T, b: T, config: Config
     }
   }
 
-  for (const change of await formChanges(a, b, await descent(a, b, config, _nextick), _nextick)) {
+  for (const change of await formChanges(a, b, await descent(a, b, options, _nextick), _nextick)) {
 
     if (offset[change.type] < change.offset) {
 
