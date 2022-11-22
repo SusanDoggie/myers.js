@@ -20,18 +20,18 @@ const rollupPlugins = [
 
 export default [
   {
-    input: `src/index`,
+    input: 'src/index',
     external: [
       /node_modules/
     ],
     output: [
       {
-        file: `dist/index.js`,
+        file: 'dist/index.js',
         format: 'cjs',
         sourcemap: true,
       },
       {
-        file: `dist/index.mjs`,
+        file: 'dist/index.mjs',
         format: 'esm',
         sourcemap: true,
       },
@@ -44,13 +44,13 @@ export default [
     ],
   },
   {
-    input: `src/index`,
+    input: 'src/index',
     external: [
       /node_modules/
     ],
     output: [
       {
-        file: `dist/index.d.ts`,
+        file: 'dist/index.d.ts',
         format: 'es',
       },
     ],
