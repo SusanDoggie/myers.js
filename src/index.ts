@@ -146,10 +146,9 @@ const formChanges = async <T extends ArrayLike<any>>(
     const prev_x = v.get(prev_k);
     const prev_y = prev_x - prev_k;
 
-    while (x > prev_x && y > prev_y) {
-      x -= 1;
-      y -= 1;
-    }
+    const min = Math.max(0, Math.min(x - prev_x, y - prev_y));
+    x -= min;
+    y -= min;
 
     if (y != prev_y) {
       changes.push({ type: 'insert', offset: prev_y, element: b[prev_y] });
