@@ -24,7 +24,7 @@
 //
 
 import _ from 'lodash';
-import nextick from 'nextick';
+import { nextick } from 'nextick';
 
 class _V {
 
