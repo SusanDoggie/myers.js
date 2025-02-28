@@ -1,5 +1,5 @@
 //
-//  index.js
+//  types.js
 //
 //  The MIT License
 //  Copyright (c) 2015 - 2025 Susan Cheng. All rights reserved.
@@ -23,5 +23,39 @@
 //  THE SOFTWARE.
 //
 
-export * from './async';
-export * from './sync';
+import _ from 'lodash';
+
+export class _V {
+
+  a: number[];
+
+  constructor(maxIndex: number) {
+    this.a = _.times(maxIndex + 1, () => 0);
+  }
+
+  static transform(index: number) {
+    return index <= 0 ? -index : index - 1;
+  }
+
+  get(index: number) {
+    return this.a[_V.transform(index)];
+  }
+
+  set(index: number, value: number) {
+    this.a[_V.transform(index)] = value;
+  }
+}
+
+export type Options<T> = {
+  compare?: (a: T, b: T) => boolean;
+};
+
+export type AsyncOptions<T> = Options<T> & {
+  compare?: (a: T, b: T) => boolean;
+  progress?: (ratio: { count: number; total: number; }) => void;
+  debounce?: number;
+};
+
+export type ElementOf<T> = T extends ArrayLike<infer P> ? P : never;
+export type ChangeValue<T> = T extends string ? string : ElementOf<T>[];
+
