@@ -168,5 +168,7 @@ export const myersSync = <T extends ArrayLike<any>>(a: T, b: T, options: Options
     result.push(v);
   }
 
+  if (_.isEmpty(result) && !_.isEmpty(a)) return a;
+
   return result;
 }

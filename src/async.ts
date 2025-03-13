@@ -193,5 +193,7 @@ export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Optio
     result.push(v);
   }
 
+  if (_.isEmpty(result) && !_.isEmpty(a)) return a;
+
   return result;
 }
