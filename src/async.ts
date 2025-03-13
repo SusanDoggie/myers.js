@@ -136,7 +136,7 @@ const formChanges = async <T extends ArrayLike<any>>(
   return changes.reverse();
 }
 
-export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Options<ElementOf<T>> = {}) => {
+export const myers = async <T extends string | ArrayLike<any>>(a: T, b: T, options: Options<ElementOf<T>> = {}) => {
 
   type Change = {
     remove?: ChangeValue<T>;
@@ -193,7 +193,7 @@ export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Optio
     result.push(v);
   }
 
-  if (_.isEmpty(result) && !_.isEmpty(a)) return a;
+  if (_.isEmpty(result) && !_.isEmpty(a)) return [{ equivalent: (_.isString(a) ? a : _.map(a, v => v)) as ChangeValue<T> }];
 
   return result;
 }
