@@ -126,7 +126,7 @@ const formChanges = <T extends ArrayLike<any>>(
   return changes.reverse();
 }
 
-export const myersSync = <T extends string | ArrayLike<any>>(a: T, b: T, options: Options<ElementOf<T>> = {}) => {
+export const myersSync = <T extends ArrayLike<any>>(a: T, b: T, options: Options<ElementOf<T>> = {}) => {
 
   type Change = {
     remove?: ChangeValue<T>;
@@ -134,7 +134,7 @@ export const myersSync = <T extends string | ArrayLike<any>>(a: T, b: T, options
     equivalent?: ChangeValue<T>;
   };
 
-  if (arraysEqual(a, b, options.compare ?? _.isEqual)) return [{ equivalent: a }];
+  if (arraysEqual(a, b, options.compare ?? _.isEqual)) return [{ equivalent: a }] as unknown as Change[];
 
   const result: Change[] = [];
   const offset = { remove: 0, insert: 0 };
