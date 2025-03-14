@@ -1,5 +1,5 @@
 //
-//  types.js
+//  utils.ts
 //
 //  The MIT License
 //  Copyright (c) 2015 - 2025 Susan Cheng. All rights reserved.
@@ -23,38 +23,18 @@
 //  THE SOFTWARE.
 //
 
-import _ from 'lodash';
+import { ElementOf } from './types';
 
-export class _V {
-
-  a: number[];
-
-  constructor(maxIndex: number) {
-    this.a = _.times(maxIndex + 1, () => 0);
+export const arraysEqual = <T extends ArrayLike<any>>(
+  a: T,
+  b: T,
+  compare: (a: ElementOf<T>, b: ElementOf<T>) => boolean
+) => {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+  for (var i = 0; i < a.length; ++i) {
+    if (!compare(a[i], b[i])) return false;
   }
-
-  static transform(index: number) {
-    return index <= 0 ? -index : index - 1;
-  }
-
-  get(index: number) {
-    return this.a[_V.transform(index)];
-  }
-
-  set(index: number, value: number) {
-    this.a[_V.transform(index)] = value;
-  }
+  return true;
 }
-
-export type Options<T> = {
-  compare?: (a: T, b: T) => boolean;
-};
-
-export type AsyncOptions<T> = Options<T> & {
-  compare?: (a: T, b: T) => boolean;
-  progress?: (ratio: { count: number; total: number; }) => void;
-  debounce?: number;
-};
-
-export type ElementOf<T> = T extends ArrayLike<infer P> ? P : never;
-export type ChangeValue<T> = T extends string ? string : ElementOf<T>[];

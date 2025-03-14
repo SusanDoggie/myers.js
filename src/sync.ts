@@ -25,6 +25,7 @@
 
 import _ from 'lodash';
 import { _V, ChangeValue, ElementOf, Options } from './types';
+import { arraysEqual } from './utils';
 
 const descent = <T extends ArrayLike<any>>(
   a: T, b: T,
@@ -133,6 +134,8 @@ export const myersSync = <T extends string | ArrayLike<any>>(a: T, b: T, options
     equivalent?: ChangeValue<T>;
   };
 
+  if (arraysEqual(a, b, options.compare ?? _.isEqual)) return [{ equivalent: a }];
+
   const result: Change[] = [];
   const offset = { remove: 0, insert: 0 };
   let v: Change = {};
@@ -167,8 +170,6 @@ export const myersSync = <T extends string | ArrayLike<any>>(a: T, b: T, options
   if (!_.isNil(v.remove) || !_.isNil(v.insert) || !_.isNil(v.equivalent)) {
     result.push(v);
   }
-
-  if (_.isEmpty(result) && !_.isEmpty(a)) return [{ equivalent: (_.isString(a) ? a : _.map(a, v => v)) as ChangeValue<T> }];
 
   return result;
 }
