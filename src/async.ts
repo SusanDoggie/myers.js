@@ -26,7 +26,6 @@
 import _ from 'lodash';
 import { nextick } from 'nextick';
 import { _V, ChangeValue, ElementOf, AsyncOptions as Options } from './types';
-import { arraysEqual } from './utils';
 
 const descent = async <T extends ArrayLike<any>>(
   a: T, b: T,
@@ -145,8 +144,6 @@ export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Optio
     equivalent?: ChangeValue<T>;
   };
 
-  if (arraysEqual(a, b, options.compare ?? _.isEqual)) return [{ equivalent: a }] as unknown as Change[];
-
   const result: Change[] = [];
   const offset = { remove: 0, insert: 0 };
   let v: Change = {};
@@ -194,6 +191,12 @@ export const myers = async <T extends ArrayLike<any>>(a: T, b: T, options: Optio
 
   if (!_.isNil(v.remove) || !_.isNil(v.insert) || !_.isNil(v.equivalent)) {
     result.push(v);
+  }
+
+  if (offset.remove < a.length) {
+    result.push({
+      equivalent: (_.isString(a) ? a.slice(offset.remove) : _.slice(a, offset.remove)) as ChangeValue<T>,
+    });
   }
 
   return result;
