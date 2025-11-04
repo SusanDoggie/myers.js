@@ -4,16 +4,6 @@
   "main": "dist/index",
   "module": "dist/index",
   "types": "dist/index",
-  "exports": {
-    ".": {
-      "types": "./dist/index.mjs",
-      "default": "./dist/index"
-    },
-    "./*": {
-      "types": "./dist/*.mjs",
-      "default": "./dist/*"
-    }
-  },
   "files": [
     "dist/*"
   ],
