@@ -29,6 +29,7 @@ export default [
         file: 'dist/index.js',
         format: 'cjs',
         sourcemap: true,
+        interop: 'auto',
       },
       {
         file: 'dist/index.mjs',
